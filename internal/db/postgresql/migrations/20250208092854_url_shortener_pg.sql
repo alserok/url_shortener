@@ -3,7 +3,7 @@
 SELECT 'up SQL query';
 -- +goose StatementEnd
 CREATE TABLE IF NOT EXISTS urls (
-    url text NOT NULL,
+    url text UNIQUE NOT NULL,
     shortened_url varchar(20) NOT NULL PRIMARY KEY
 );
 

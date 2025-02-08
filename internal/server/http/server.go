@@ -1,20 +1,24 @@
 package http
 
 import (
+	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/service"
 	"github.com/alserok/url_shortener/pkg/logger"
 	"net/http"
 	"time"
 )
 
-func New(srvc service.Service, log logger.Logger) *server {
+func New(srvc service.Service, cache cache.Cache, log logger.Logger) *server {
 	return &server{
 		s: &http.Server{
 			WriteTimeout:      time.Second * 3,
 			ReadHeaderTimeout: time.Second * 1,
 		},
-		handler: handler{srvc: srvc},
-		log:     log,
+		log: log,
+		handler: handler{
+			srvc:  srvc,
+			cache: cache,
+		},
 	}
 }
 

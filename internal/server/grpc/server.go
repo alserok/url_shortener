@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/server/grpc/middleware"
 	"github.com/alserok/url_shortener/internal/service"
 	"github.com/alserok/url_shortener/internal/utils"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-func New(srvc service.Service, log logger.Logger) *server {
+func New(srvc service.Service, cache cache.Cache, log logger.Logger) *server {
 	return &server{
 		s: grpc.NewServer(
 			middleware.WithChain(
@@ -22,7 +23,8 @@ func New(srvc service.Service, log logger.Logger) *server {
 			),
 		),
 		handler: handler{
-			srvc: srvc,
+			srvc:  srvc,
+			cache: cache,
 		},
 	}
 }

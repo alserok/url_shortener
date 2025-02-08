@@ -7,8 +7,8 @@ import (
 )
 
 type Cache interface {
-	Set(ctx context.Context, key string, val any) error
-	Get(ctx context.Context, key string, target any) error
+	Set(ctx context.Context, key string, val string) error
+	Get(ctx context.Context, key string) (string, error)
 
 	Close() error
 }

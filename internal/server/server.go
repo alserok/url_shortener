@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/server/grpc"
 	"github.com/alserok/url_shortener/internal/server/http"
 	"github.com/alserok/url_shortener/internal/service"
@@ -16,12 +17,12 @@ const (
 	HTTP
 )
 
-func New(t uint, srvc service.Service, log logger.Logger) Server {
+func New(t uint, srvc service.Service, cache cache.Cache, log logger.Logger) Server {
 	switch t {
 	case HTTP:
-		return http.New(srvc, log)
+		return http.New(srvc, cache, log)
 	case GRPC:
-		return grpc.New(srvc, log)
+		return grpc.New(srvc, cache, log)
 	default:
 		panic("invalid server type")
 	}

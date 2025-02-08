@@ -33,7 +33,7 @@ func (prs *PostgresRepoSuite) SetupTest() {
 }
 
 func (prs *PostgresRepoSuite) TeardownTest() {
-	prs.containers.postgres.Terminate(context.Background())
+	prs.Require().NoError(prs.containers.postgres.Terminate(context.Background()))
 }
 
 func (prs *PostgresRepoSuite) TestSaveURL() {

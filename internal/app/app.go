@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/config"
 	"github.com/alserok/url_shortener/internal/db"
 	"github.com/alserok/url_shortener/internal/server"
@@ -15,12 +16,23 @@ func MustStart(cfg *config.Config) {
 	log := logger.New(logger.Slog, cfg.Env)
 	defer log.Info("server has been stopped")
 
+	c := cache.New(cache.Redis, cfg.Cache)
+	defer func() {
+		if err := c.Close(); err != nil {
+			log.Warn("failed to close cache", logger.WithArg("error", err.Error()))
+		}
+	}()
+
 	repo := db.New(cfg.DBType, cfg.DB)
 	defer func() {
-		_ = repo.Close()
+		if err := repo.Close(); err != nil {
+			log.Warn("failed to close repo", logger.WithArg("error", err.Error()))
+		}
 	}()
+
 	srvc := service.New(repo)
-	srvr := server.New(cfg.ServerType, srvc, log)
+
+	srvr := server.New(cfg.ServerType, srvc, c, log)
 
 	log.Info(
 		"server is running",

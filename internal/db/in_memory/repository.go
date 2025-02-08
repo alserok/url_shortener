@@ -22,6 +22,11 @@ func (r *repository) SaveURL(ctx context.Context, url, shortened string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	if _, ok := r.db[shortened]; ok {
+		// there is no need to return an error, because it doesn't break any logic
+		return nil
+	}
+
 	r.db[shortened] = url
 
 	return nil
