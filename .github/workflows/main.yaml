@@ -1,0 +1,46 @@
+name: main (CI)
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.23'
+
+      - name: Install Go dependencies
+        run: go mod tidy
+
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v4
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.23'
+
+      - name: Install Go dependencies
+        run: go mod tidy
+
+      - name: Run Tests
+        run: go test ./... -v --race
