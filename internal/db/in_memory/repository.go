@@ -39,7 +39,8 @@ func (r *repository) SaveURL(ctx context.Context, url, shortened string) error {
 	defer r.mu.Unlock()
 
 	if _, ok := r.db[shortened]; ok {
-		return utils.NewError(duplicateKeyErrorMessage, utils.BadRequestErr)
+		// no need to return an error, entity already exists in db
+		return nil
 	}
 
 	n := &node[string]{
