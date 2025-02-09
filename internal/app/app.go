@@ -15,7 +15,10 @@ import (
 
 func MustStart(cfg *config.Config) {
 	log := logger.New(logger.Slog, cfg.Env)
-	defer log.Info("server has been stopped")
+	defer func() {
+		log.Info("server has been stopped")
+		_ = log.Close()
+	}()
 
 	c := cache.New(cache.Redis, cfg.Cache)
 	defer func() {
