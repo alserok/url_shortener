@@ -49,7 +49,8 @@ func (r *repository) SaveURL(ctx context.Context, url, shortened string) error {
 		if errors.As(err, &pqError) {
 			switch pqError.Code {
 			case duplicateKeyErrorCode:
-				return utils.NewError(duplicateKeyErrorMessage, utils.BadRequestErr)
+				// no need to return an error, entity already exists in db
+				return nil
 			}
 		}
 
