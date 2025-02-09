@@ -43,8 +43,9 @@ func (cache *Cache) RedisDSN() string {
 }
 
 const (
-	defaultServerGRPCType = 0
-	defaultDBPostgresType = 0
+	defaultServerType = 1
+	defaultDBType     = 1
+	postgresDBType    = 0
 
 	defaultEnv  = "PROD"
 	defaultPort = "5000"
@@ -54,8 +55,8 @@ func MustLoad() *Config {
 	cfg := Config{
 		Env:        defaultEnv,
 		Port:       defaultPort,
-		ServerType: defaultServerGRPCType,
-		DBType:     defaultDBPostgresType,
+		ServerType: defaultServerType,
+		DBType:     defaultDBType,
 	}
 
 	cfg.parseMainConfig()
@@ -74,18 +75,18 @@ func (cfg *Config) parseMainConfig() {
 		cfg.Env = env
 	}
 
-	if adapterType, err := strconv.Atoi(os.Getenv("SERVER_TYPE")); err != nil {
+	if adapterType, err := strconv.Atoi(os.Getenv("SERVER_TYPE")); err == nil {
 		cfg.ServerType = uint(adapterType)
 	}
 
-	if dbType, err := strconv.Atoi(os.Getenv("DB_TYPE")); err != nil {
+	if dbType, err := strconv.Atoi(os.Getenv("DB_TYPE")); err == nil {
 		cfg.DBType = uint(dbType)
 	}
 }
 
 func (cfg *Config) parseDBConfig() {
 	switch cfg.DBType {
-	case defaultDBPostgresType:
+	case postgresDBType:
 		cfg.DB.postgres.host = os.Getenv("DB_HOST")
 		cfg.DB.postgres.port = os.Getenv("DB_PORT")
 		cfg.DB.postgres.user = os.Getenv("DB_USER")

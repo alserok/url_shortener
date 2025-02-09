@@ -6,6 +6,7 @@ import (
 	"github.com/alserok/url_shortener/internal/service"
 	"github.com/alserok/url_shortener/internal/service/models"
 	"github.com/alserok/url_shortener/internal/utils"
+	"github.com/alserok/url_shortener/pkg/logger"
 	"github.com/alserok/url_shortener/pkg/proto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
@@ -20,12 +21,14 @@ type GRPCHandlersSuite struct {
 	suite.Suite
 
 	handler handler
+	ctx     context.Context
 
 	mocks struct {
 		ctrl *gomock.Controller
 
-		cache *cache.MockCache
-		srvc  *service.MockService
+		cache  *cache.MockCache
+		srvc   *service.MockService
+		logger *logger.MockLogger
 	}
 }
 
@@ -33,8 +36,10 @@ func (ghs *GRPCHandlersSuite) SetupTest() {
 	ghs.mocks.ctrl = gomock.NewController(ghs.T())
 	ghs.mocks.srvc = service.NewMockService(ghs.mocks.ctrl)
 	ghs.mocks.cache = cache.NewMockCache(ghs.mocks.ctrl)
+	ghs.mocks.logger = logger.NewMockLogger(ghs.mocks.ctrl)
 
 	ghs.handler = handler{srvc: ghs.mocks.srvc, cache: ghs.mocks.cache}
+	ghs.ctx = logger.WrapLogger(context.Background(), ghs.mocks.logger)
 }
 
 func (ghs *GRPCHandlersSuite) TeardownRest() {
@@ -50,7 +55,11 @@ func (ghs *GRPCHandlersSuite) TestShortenAndSaveURL() {
 		Return("shortened", nil).
 		Times(1)
 
-	res, err := ghs.handler.ShortenAndSaveURL(context.Background(), &proto.URL{OriginUrl: url.OriginURL})
+	ghs.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
+
+	res, err := ghs.handler.ShortenAndSaveURL(ghs.ctx, &proto.URL{OriginUrl: url.OriginURL})
 	ghs.Require().NoError(err)
 	ghs.Require().Equal(shortenedURL, res.ShortenedUrl)
 }
@@ -74,7 +83,11 @@ func (ghs *GRPCHandlersSuite) TestGetURL() {
 		Return(nil).
 		Times(1)
 
-	res, err := ghs.handler.GetURL(context.Background(), &proto.ShortenedURL{ShortenedUrl: shortenedURL})
+	ghs.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
+
+	res, err := ghs.handler.GetURL(ghs.ctx, &proto.ShortenedURL{ShortenedUrl: shortenedURL})
 	ghs.Require().NoError(err)
 	ghs.Require().Equal(url, res.OriginUrl)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/alserok/url_shortener/pkg/logger"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func MustStart(cfg *config.Config) {
@@ -38,8 +39,8 @@ func MustStart(cfg *config.Config) {
 		"server is running",
 		logger.WithArg("port", cfg.Port),
 		logger.WithArg("env", cfg.Env),
-		logger.WithArg("server type", cfg.ServerType),
-		logger.WithArg("db type", cfg.DBType),
+		logger.WithArg("server_type", cfg.ServerType),
+		logger.WithArg("db_type", cfg.DBType),
 	)
 	run(srvr, cfg.Port)
 }
@@ -51,4 +52,9 @@ func run(s server.Server, port string) {
 	go s.MustServe(port)
 
 	<-ctx.Done()
+
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	s.Shutdown(ctx)
 }

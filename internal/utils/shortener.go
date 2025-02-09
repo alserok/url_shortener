@@ -4,12 +4,24 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"strings"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func ShortenURL(ctx context.Context, url string, size int) (string, error) {
-	hash := sha256.Sum256([]byte(url))
+	// check is optional, potentially may be possible to implement Redirect, so that is why a valid url is required
+	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
+		return "", NewError("unknown url format: expect http or https", BadRequestErr)
+	}
+
+	hash := makeHashFromString(ctx, url, size)
+
+	return hash, nil
+}
+
+func makeHashFromString(ctx context.Context, str string, size int) string {
+	hash := sha256.Sum256([]byte(str))
 	hashHex := hex.EncodeToString(hash[:])
 
 	for len(hashHex) < size {
@@ -20,13 +32,5 @@ func ShortenURL(ctx context.Context, url string, size int) (string, error) {
 		hashHex = hashHex[:size]
 	}
 
-	if strings.HasPrefix(url, "https://") {
-		return fmt.Sprintf("https://%s", hashHex), nil
-	}
-
-	if strings.HasPrefix(url, "http://") {
-		return fmt.Sprintf("http://%s", hashHex), nil
-	}
-
-	return hashHex, nil
+	return hashHex
 }

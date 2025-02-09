@@ -14,33 +14,34 @@ services:
       DB_TYPE: 0
 
       REDIS_HOST: redis
-      REDIS_PORT: 7000
+      REDIS_PORT: 6379
 
-      DB_HOST: db
-      DB_PORT: 6000
+      DB_HOST: postgres
+      DB_PORT: 5432
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: postgres
     depends_on:
-      - db
+      - postgres
       - redis
     restart: unless-stopped
 
   redis:
     image: redis:latest
     ports:
-      - "7000:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
 
-  db:
-    image: postgres:latest
-    ports:
-      - "6000:5432"
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 

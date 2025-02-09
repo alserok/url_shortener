@@ -1,5 +1,5 @@
 package models
 
 type URL struct {
-	OriginURL string
+	OriginURL string `json:"originURL"`
 }

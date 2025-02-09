@@ -8,10 +8,18 @@ import (
 )
 
 func (s *server) setupRoutes(mux *http.ServeMux, h handler) {
-	middleware.WithLogger(s.log)(s.s.Handler)
-	middleware.WithRateLimiter(utils.NewLimiter(100, time.Second))(s.s.Handler)
-	middleware.WithRecovery(s.s.Handler)
+	mux.HandleFunc("GET /get/{shortenedURL}", s.wrapHandlerWithMiddlewares(h.GetURL))
+	mux.HandleFunc("POST /save", s.wrapHandlerWithMiddlewares(h.ShortenAndSaveURL))
+}
 
-	mux.HandleFunc("GET /get", middleware.WithErrorHandler(h.GetURL))
-	mux.HandleFunc("POST /save", middleware.WithErrorHandler(h.ShortenAndSaveURL))
+func (s *server) wrapHandlerWithMiddlewares(handlerFn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {
+	fn := middleware.WithLogger(s.log)(
+		middleware.WithRecovery(
+			middleware.WithRateLimiter(utils.NewLimiter(1000, time.Second))(
+				middleware.WithErrorHandler(handlerFn),
+			),
+		),
+	)
+
+	return fn
 }

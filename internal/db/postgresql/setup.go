@@ -7,20 +7,24 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	postgresDialect = "postgres"
+)
+
 func MustConnect(dsn, migrationsDir string) *sqlx.DB {
 	db, err := sqlx.Connect(postgresDialect, dsn)
 	if err != nil {
 		panic("failed to connect to postgres: " + err.Error())
 	}
 
+	if err = db.Ping(); err != nil {
+		panic("failed to ping postgres: " + err.Error())
+	}
+
 	mustMigrate(db, migrationsDir)
 
 	return db
 }
-
-const (
-	postgresDialect = "postgres"
-)
 
 func mustMigrate(db *sqlx.DB, migrationsDir string) {
 	if err := goose.SetDialect(postgresDialect); err != nil {

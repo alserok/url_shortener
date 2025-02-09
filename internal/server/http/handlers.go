@@ -22,10 +22,13 @@ func (h *handler) ShortenAndSaveURL(w http.ResponseWriter, r *http.Request) erro
 	if err := json.NewDecoder(r.Body).Decode(&url); err != nil {
 		return utils.NewError(err.Error(), utils.BadRequestErr)
 	}
-
 	if url.OriginURL == "" {
 		return utils.NewError("invalid url", utils.BadRequestErr)
 	}
+
+	log := logger.ExtractLogger(r.Context())
+
+	log.Debug("started ShortenAndSaveURL handler", logger.WithArg("url", url.OriginURL))
 
 	shortened, err := h.srvc.ShortenAndSaveURL(r.Context(), url.OriginURL)
 	if err != nil {
@@ -37,19 +40,26 @@ func (h *handler) ShortenAndSaveURL(w http.ResponseWriter, r *http.Request) erro
 		return utils.NewError(err.Error(), utils.InternalErr)
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	log.Debug("successfully finished ShortenAndSaveURL handler", logger.WithArg("url", url.OriginURL))
 
 	return nil
 }
 
 func (h *handler) GetURL(w http.ResponseWriter, r *http.Request) error {
-	shortened := r.URL.Query().Get("shortenedURL")
+	log := logger.ExtractLogger(r.Context())
+
+	shortened := r.PathValue("shortenedURL")
+
+	log.Debug("started GetURL handler", logger.WithArg("shortened_url", shortened))
 
 	if cachedURL, err := h.cache.Get(r.Context(), shortened); err == nil {
 		w.Header().Set("Content-Type", "application/json")
 		if err = json.NewEncoder(w).Encode(map[string]any{"url": cachedURL}); err != nil {
 			return utils.NewError(err.Error(), utils.InternalErr)
 		}
+
+		log.Debug("returned cached GetURL handler response", logger.WithArg("shortened_url", shortened))
+
 		return nil
 	}
 
@@ -59,13 +69,15 @@ func (h *handler) GetURL(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(map[string]any{"url": url}); err != nil {
+	if err = json.NewEncoder(w).Encode(map[string]any{"originURL": url}); err != nil {
 		return utils.NewError(err.Error(), utils.InternalErr)
 	}
 
 	if err = h.cache.Set(r.Context(), shortened, url); err != nil {
 		logger.ExtractLogger(r.Context()).Warn("failed to insert in cache", logger.WithArg("error", err.Error()))
 	}
+
+	log.Debug("successfully finished GetURL handler", logger.WithArg("shortened_url", shortened))
 
 	return nil
 }

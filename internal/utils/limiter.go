@@ -20,6 +20,13 @@ func NewLimiter(cap uint, tick time.Duration) *leakyBucket {
 		tick: defaultTick,
 	}
 
+	if cap != 0 {
+		lb.cap = cap
+	}
+	if tick.Milliseconds() != 0 {
+		lb.tick = tick
+	}
+
 	lb.tickets = make(chan struct{}, lb.cap)
 	for i := 0; i < int(lb.cap); i++ {
 		lb.tickets <- struct{}{}
@@ -34,6 +41,7 @@ func NewLimiter(cap uint, tick time.Duration) *leakyBucket {
 			select {
 			case lb.tickets <- struct{}{}:
 			default:
+				return
 			}
 		}
 	}()

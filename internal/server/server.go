@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/server/grpc"
 	"github.com/alserok/url_shortener/internal/server/http"
@@ -10,6 +11,7 @@ import (
 
 type Server interface {
 	MustServe(port string)
+	Shutdown(ctx context.Context)
 }
 
 const (

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/alserok/url_shortener/internal/db"
+	"github.com/alserok/url_shortener/pkg/logger"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 	"testing"
@@ -15,16 +16,22 @@ func TestService(t *testing.T) {
 type ServiceSuite struct {
 	suite.Suite
 
+	ctx context.Context
+
 	mocks struct {
 		ctrl *gomock.Controller
 
-		repo *db.MockRepository
+		repo   *db.MockRepository
+		logger *logger.MockLogger
 	}
 }
 
 func (ss *ServiceSuite) SetupTest() {
 	ss.mocks.ctrl = gomock.NewController(ss.T())
 	ss.mocks.repo = db.NewMockRepository(ss.mocks.ctrl)
+	ss.mocks.logger = logger.NewMockLogger(ss.mocks.ctrl)
+
+	ss.ctx = logger.WrapLogger(context.Background(), ss.mocks.logger)
 }
 
 func (ss *ServiceSuite) TeardownTest() {
@@ -39,7 +46,11 @@ func (ss *ServiceSuite) TestShortenAndSaveURL() {
 		Return(nil).
 		Times(1)
 
-	res, err := New(ss.mocks.repo).ShortenAndSaveURL(context.Background(), url)
+	ss.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
+
+	res, err := New(ss.mocks.repo).ShortenAndSaveURL(ss.ctx, url)
 	ss.Require().NoError(err)
 	ss.Require().NotEqual("", res)
 }
@@ -53,7 +64,11 @@ func (ss *ServiceSuite) TestGetURL() {
 		Return(url, nil).
 		Times(1)
 
-	res, err := New(ss.mocks.repo).GetURL(context.Background(), shortened)
+	ss.mocks.logger.EXPECT().
+		Debug(gomock.Any(), gomock.Any()).
+		AnyTimes()
+
+	res, err := New(ss.mocks.repo).GetURL(ss.ctx, shortened)
 	ss.Require().NoError(err)
 	ss.Require().Equal(url, res)
 }

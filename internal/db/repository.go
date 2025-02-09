@@ -18,7 +18,7 @@ const (
 	PostgreSQL = iota
 	InMemory
 
-	postgresMigrationsDir = "./internal/db/postgresql/migrations"
+	postgresMigrationsDir = "migrations/postgres"
 )
 
 func New(t uint, cfg config.DB) Repository {
@@ -27,10 +27,6 @@ func New(t uint, cfg config.DB) Repository {
 	switch t {
 	case PostgreSQL:
 		conn := postgresql.MustConnect(cfg.PostgresDSN(), postgresMigrationsDir)
-		defer func() {
-			_ = conn.Close()
-		}()
-
 		repo = postgresql.NewRepository(conn)
 	case InMemory:
 		return in_memory.NewRepository()

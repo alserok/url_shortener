@@ -10,11 +10,11 @@ services:
     environment:
       ENV: DEV
       PORT: 5000
-      SERVER_TYPE: 0
-      DB_TYPE: 0
+      SERVER_TYPE: 1
+      DB_TYPE: 1
 
       REDIS_HOST: redis
-      REDIS_PORT: 7000
+      REDIS_PORT: 6379
     depends_on:
       - redis
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
   redis:
     image: redis:latest
     ports:
-      - "7000:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
 

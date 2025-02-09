@@ -1,6 +1,8 @@
 package http
 
 import (
+	"context"
+	"errors"
 	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/service"
 	"github.com/alserok/url_shortener/pkg/logger"
@@ -28,6 +30,10 @@ type server struct {
 	log     logger.Logger
 }
 
+func (s *server) Shutdown(ctx context.Context) {
+	_ = s.s.Shutdown(ctx)
+}
+
 func (s *server) MustServe(port string) {
 	mux := http.NewServeMux()
 	s.setupRoutes(mux, s.handler)
@@ -35,7 +41,7 @@ func (s *server) MustServe(port string) {
 	s.s.Handler = mux
 	s.s.Addr = ":" + port
 
-	if err := s.s.ListenAndServe(); err != nil {
+	if err := s.s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic("failed to listen and serve: " + err.Error())
 	}
 }

@@ -14,6 +14,7 @@ FROM alpine:latest AS final
 
 WORKDIR /app
 
-COPY --from=builder /build/main /main
+COPY --from=builder /build/main ./
+COPY --from=builder /build/migrations ./migrations
 
 CMD ["./main"]

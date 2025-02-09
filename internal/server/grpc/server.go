@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"context"
 	"github.com/alserok/url_shortener/internal/cache"
 	"github.com/alserok/url_shortener/internal/server/grpc/middleware"
 	"github.com/alserok/url_shortener/internal/service"
@@ -19,7 +20,7 @@ func New(srvc service.Service, cache cache.Cache, log logger.Logger) *server {
 				middleware.WithLogger(log),
 				middleware.WithRecovery(),
 				middleware.WithErrorHandler(),
-				middleware.WithRateLimiter(utils.NewLimiter(100, time.Second)),
+				middleware.WithRateLimiter(utils.NewLimiter(1000, time.Second)),
 			),
 		),
 		handler: handler{
@@ -32,6 +33,10 @@ func New(srvc service.Service, cache cache.Cache, log logger.Logger) *server {
 type server struct {
 	s       *grpc.Server
 	handler handler
+}
+
+func (s *server) Shutdown(ctx context.Context) {
+	s.s.GracefulStop()
 }
 
 func (s *server) MustServe(port string) {

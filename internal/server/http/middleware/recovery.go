@@ -10,6 +10,7 @@ func WithRecovery(fn http.Handler) http.HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				logger.ExtractLogger(r.Context()).Error("panic recovery", logger.WithArg("error", err))
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
 

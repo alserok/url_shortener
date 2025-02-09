@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"github.com/alserok/url_shortener/internal/utils"
+	"github.com/alserok/url_shortener/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,8 +21,10 @@ func WithErrorHandler() grpc.UnaryServerInterceptor {
 			case utils.NotFoundErr:
 				return nil, status.Error(codes.NotFound, msg)
 			case utils.InternalErr:
+				logger.ExtractLogger(ctx).Error(err.Error())
 				return nil, status.Error(codes.Internal, msg)
 			default:
+				logger.ExtractLogger(ctx).Error(err.Error())
 				return nil, status.Error(codes.Internal, msg)
 			}
 		}
