@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "github.com/alserok/url_shortener/pkg/proto";
+
+service URLShortener {
+  rpc ShortenAndSaveURL(URL) returns (ShortenedURL);
+  rpc GetURL(ShortenedURL) returns (URL);
+}
+
+message URL {
+  string origin_url = 1;
+}
+
+message ShortenedURL {
+  string shortened_url = 1;
+}
