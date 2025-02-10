@@ -41,7 +41,6 @@ func NewLimiter(cap uint, tick time.Duration) *leakyBucket {
 			select {
 			case lb.tickets <- struct{}{}:
 			default:
-				return
 			}
 		}
 	}()
